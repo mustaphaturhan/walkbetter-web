@@ -64,7 +64,7 @@ POI visibility (like landmarks vs. shops) is handled based on zoom levels for a 
 
 ## 📄 License
 
-MIT – see [LICENSE](./LICENSE)
+GPL – see [LICENSE](./LICENSE)
 
 ---
 
