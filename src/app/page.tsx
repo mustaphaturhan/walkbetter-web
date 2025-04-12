@@ -1,15 +1,18 @@
 import { Hero } from "@/components/hero";
-import { Map } from "@/components/map";
-import { Separator } from "@/components/ui/separator";
+import { ClientMapProvider } from "@/components/map/client-provider";
+import { Route } from "@/components/route";
+import { HydrateClient } from "@/trpc/server";
 
 export default function Home() {
   return (
-    <main className="container m-auto py-24">
-      <Hero />
-      <Separator className="my-12" />
-      <div className="w-full h-[600]">
-        <Map />
-      </div>
-    </main>
+    <HydrateClient>
+      <main className="container m-auto py-24 px-6 2xl:px-4">
+        <Hero />
+
+        <ClientMapProvider>
+          <Route />
+        </ClientMapProvider>
+      </main>
+    </HydrateClient>
   );
 }

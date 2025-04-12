@@ -4,17 +4,17 @@ import { Item, List } from "../ui/hero-list";
 
 export const Hero = () => {
   return (
-    <section className="grid grid-cols-2 gap-12 items-center">
+    <section className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
       <section className="flex flex-col gap-2">
         <div className="flex flex-col gap-4 max-w-2xl">
           <h1 className="text-3xl font-extrabold lg:text-5xl leading-tight">
-            <span className="text-orange-600">Walk</span> Smarter, <br />{" "}
+            <span className="text-amber-600">Walk</span> Smarter, <br />{" "}
             <span className="text-sky-600">Explore</span> Better.
           </h1>
-          <h2 className="text-slate-700 text-xl">
+          <h4 className="text-slate-700 text-xl">
             Build your perfect walking adventure through the city — hit every
             must-see spot without retracing your steps.
-          </h2>
+          </h4>
           <List>
             <Item
               icon="🗺️"
@@ -29,7 +29,7 @@ export const Hero = () => {
           </List>
         </div>
       </section>
-      <section>
+      <section className="hidden lg:block">
         <div className="w-full flex flex-col items-end gap-4">
           <div className="rounded-md overflow-hidden shadow-sm">
             <Image src={HeroImage} alt="Hero image" placeholder="blur" />
