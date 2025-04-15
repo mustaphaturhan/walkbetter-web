@@ -75,6 +75,7 @@ export const Map = ({ id }: MapProps) => {
       const { lng, lat } = e.lngLat;
 
       if (viewState.zoom > 12) {
+        // @ts-expect-error - TODO: fix this after development process is done
         setPreviewPlace(id, { lat, lon: lng });
       } else {
         toast("Can't select the location from this distance.", {
