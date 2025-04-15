@@ -64,6 +64,9 @@ export function SearchLocation({
                 key={`${place.osm_type}-${place.osm_id}`}
                 onSelect={() => {
                   onSelect(place);
+                  if (mapId) {
+                    flyTo(mapId, { lat: place.lat, lon: place.lon, zoom: 15 });
+                  }
                 }}
               >
                 <Icon className="h-4 w-4 text-muted-foreground" />
@@ -93,7 +96,9 @@ export function SearchLocation({
                       onClick={(e) => {
                         e.stopPropagation();
                         flyTo(mapId, { lat: place.lat, lon: place.lon });
-                        setPreviewPlace(mapId, place);
+                        // todo: make this type safe
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        setPreviewPlace(mapId, place as any);
                       }}
                       size="icon-sm"
                     >

@@ -11,7 +11,10 @@ interface MapState {
   previewPlaces: Record<string, PreviewPlace | null>;
   setPreviewPlace: (id: string, place: PreviewPlace | null) => void;
 
-  flyTo: (id: string, coords: { lat: number; lon: number }) => void;
+  flyTo: (
+    id: string,
+    coords: { lat: number; lon: number; zoom?: number }
+  ) => void;
 }
 
 export const useMapStore = create<MapState>()(
@@ -31,10 +34,10 @@ export const useMapStore = create<MapState>()(
           state.previewPlaces[id] = place;
         }),
 
-      flyTo: (id, { lat, lon }) => {
+      flyTo: (id, { lat, lon, zoom = 16 }) => {
         const ref = get().mapRefs[id];
         if (!ref) return;
-        ref.flyTo({ center: [lon, lat], zoom: 16, duration: 1000 });
+        ref.flyTo({ center: [lon, lat], zoom, duration: 1000 });
       },
     })),
     { name: "MapStore" }

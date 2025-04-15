@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { MapPin } from "lucide-react";
 import PlaceInfoCard from "../ui/place-info-card";
 import { useMapStore } from "@/stores/map.store";
+import { useRouteStore } from "@/stores/route.store";
 
 const initialViewState = { zoom: 5, longitude: 13.388, latitude: 49.517 };
 
@@ -26,6 +27,7 @@ export const Map = ({ id }: MapProps) => {
   const setMapRef = useMapStore((s) => s.setMapRef);
   const setPreviewPlace = useMapStore((s) => s.setPreviewPlace);
   const previewPlace = useMapStore((s) => s.previewPlaces[id] ?? null);
+  const locations = useRouteStore((s) => s.locations);
   const [viewState, setViewState] = useState(initialViewState);
   const clickTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -117,6 +119,14 @@ export const Map = ({ id }: MapProps) => {
           <MapPin className="w-6 h-6 relative bottom-2 rounded-full fill-white stroke-orange-600" />
         </Marker>
       )}
+
+      {locations.map((location, i) => (
+        <Marker key={i} longitude={location.lon} latitude={location.lat}>
+          <div className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center border-2 border-white shadow-md">
+            {i + 1}
+          </div>
+        </Marker>
+      ))}
 
       {previewPlace && previewPlace.ready && (
         <div className="absolute bottom-4 w-full max-w-[350px] left-1/2 -translate-x-1/2">
