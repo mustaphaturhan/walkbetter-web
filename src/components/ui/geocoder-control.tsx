@@ -1,19 +1,9 @@
 /* global fetch */
 import * as React from "react";
 import { useState } from "react";
-import { MarkerProps, ControlPosition } from "react-map-gl/maplibre";
-import { MaplibreGeocoderOptions } from "@maplibre/maplibre-gl-geocoder";
 import { Input } from "./input";
 import { useDebounce } from "../../hooks/use-debounce";
 import { useQuery } from "@tanstack/react-query";
-
-type GeocoderControlProps = Omit<
-  MaplibreGeocoderOptions,
-  "maplibregl" | "marker"
-> & {
-  marker?: boolean | Omit<MarkerProps, "longitude" | "latitude">;
-  position: ControlPosition;
-};
 
 type SearchFeature = {
   type: string;
@@ -66,7 +56,7 @@ const fetchGeocodeResults = async (query: string): Promise<SearchFeature[]> => {
   return results;
 };
 
-export default function GeocoderControl(props: GeocoderControlProps) {
+export default function GeocoderControl() {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
 

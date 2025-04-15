@@ -35,6 +35,7 @@ interface MapProps {
 
 export const OptimizedMap = ({ initialLocation = true }: MapProps) => {
   const mapRef = useRef<MapRef>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [route, setRoute] = useState<any>(null);
   const [markers, setMarkers] = useState<[number, number][]>([]);
   const [viewState, setViewState] = useState(initialViewState);
@@ -65,6 +66,7 @@ export const OptimizedMap = ({ initialLocation = true }: MapProps) => {
         });
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
