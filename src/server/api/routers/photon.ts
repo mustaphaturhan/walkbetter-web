@@ -2,15 +2,12 @@ import { z } from "zod";
 import { consola } from "consola";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
-import { LRUCache } from "lru-cache";
 import { buildUrl } from "@/lib/url";
 import { PhotonResponse } from "@/server/types";
 import { PhotonPlace } from "@/types/common";
+import { getFromCache, setInCache } from "@/lib/redis";
 
-const cache = new LRUCache<string, PhotonPlace[]>({
-  max: 500,
-  ttl: 1000 * 60 * 5,
-});
+const PHOTON_CACHE_TTL_SECONDS = 20 * 60; // 20 minutes
 
 const searchInputSchema = z.object({
   query: z.string().min(2),
@@ -67,9 +64,10 @@ export const photonRouter = createTRPCRouter({
   search: publicProcedure.input(searchInputSchema).query(async ({ input }) => {
     const key = generateSearchCacheKey(input);
 
-    if (cache.has(key)) {
-      consola.info(`Cache hit for search: ${key}`);
-      return { source: "cache", results: cache.get(key) };
+    const cachedResults = await getFromCache<PhotonPlace[]>(key);
+
+    if (cachedResults) {
+      return { source: "cache", results: cachedResults };
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -123,7 +121,7 @@ export const photonRouter = createTRPCRouter({
       ).values()
     );
 
-    cache.set(key, results);
+    await setInCache(key, results, PHOTON_CACHE_TTL_SECONDS);
 
     return { source: "api", results };
   }),
@@ -132,9 +130,10 @@ export const photonRouter = createTRPCRouter({
     .query(async ({ input }: { input: PhotonNearbySearchInput }) => {
       const key = generateNearbyCacheKey(input);
 
-      if (cache.has(key)) {
-        consola.info(`Cache hit for nearbySearch: ${key}`);
-        return { source: "cache", results: cache.get(key) };
+      const cachedResults = await getFromCache<PhotonPlace[]>(key);
+
+      if (cachedResults) {
+        return { source: "cache", results: cachedResults };
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -187,7 +186,7 @@ export const photonRouter = createTRPCRouter({
         ).values()
       );
 
-      cache.set(key, results);
+      await setInCache(key, results, PHOTON_CACHE_TTL_SECONDS);
 
       return { source: "api", results };
     }),
