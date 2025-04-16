@@ -18,12 +18,21 @@ import {
 import { SearchLocation } from "@/components/ui/search-location";
 import { useMapStore } from "@/stores/map.store";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronsUpDown, MapPinHouse, MapPinPlus, Route } from "lucide-react";
+import {
+  ChevronsUpDown,
+  MapPin,
+  MapPinHouse,
+  MapPinPlus,
+  MapPinX,
+  Route,
+} from "lucide-react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { useRouteStore } from "@/stores/route.store";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { PhotonPlace } from "@/types/common";
+import { api } from "@/trpc/react";
 
 const schema = z.object({
   places: z.array(z.any()).min(3, { message: "At least 3 locations" }),
@@ -37,7 +46,7 @@ export function RouteForm({ mapId }: RouteFormProps) {
   const previewPlace = useMapStore((s) => s.previewPlaces[mapId] ?? null);
   const setPreviewPlace = useMapStore((s) => s.setPreviewPlace);
   const setLocations = useRouteStore((s) => s.setLocations);
-
+  const [nearbyPlaces, setNearbyPlaces] = useState<PhotonPlace[] | null>(null);
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -45,6 +54,45 @@ export function RouteForm({ mapId }: RouteFormProps) {
     },
   });
   const places = useFieldArray({ control: form.control, name: "places" });
+  const watchedPlaces = useWatch({ control: form.control, name: "places" });
+
+  const nearbySearchQuery = api.photon.nearbySearch.useQuery(
+    {
+      lat: watchedPlaces[0].lat,
+      lon: watchedPlaces[0].lon,
+      limit: 20,
+      radius: 50,
+      osm_tag: "tourism",
+    },
+    {
+      enabled: !!watchedPlaces[0].lat && !!watchedPlaces[0].lon,
+      staleTime: 1000 * 60 * 5,
+    }
+  );
+
+  useEffect(() => {
+    if (
+      nearbySearchQuery.status === "success" &&
+      nearbySearchQuery.data?.results
+    ) {
+      const selectedIds = new Set(
+        watchedPlaces
+          ?.filter((p) => p?.osm_id)
+          .map((p) => `${p.osm_type}-${p.osm_id}`) ?? []
+      );
+
+      const filteredResults = nearbySearchQuery.data.results.filter(
+        (p) => !selectedIds.has(`${p.osm_type}-${p.osm_id}`)
+      );
+
+      setNearbyPlaces(filteredResults || null);
+      return;
+    }
+
+    if (nearbySearchQuery.status === "error") {
+      setNearbyPlaces(null);
+    }
+  }, [nearbySearchQuery.data, nearbySearchQuery.status, watchedPlaces]);
 
   // 🚨 sync form.locations -> zustand
   useEffect(() => {
@@ -61,15 +109,14 @@ export function RouteForm({ mapId }: RouteFormProps) {
     console.log(data);
   };
 
-  const watchedPlaces = useWatch({ control: form.control, name: "places" });
-
   return (
     <div className="border p-4 rounded-md">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           {places.fields.map((field, i) => {
-            const firstItem = i === 0;
-            const lastItem = i === places.fields.length - 1;
+            const isFirstItem = i === 0;
+            const isLastItem = i === places.fields.length - 1;
+            const isStop = !isFirstItem && !isLastItem;
             return (
               <FormField
                 key={field.id}
@@ -78,7 +125,7 @@ export function RouteForm({ mapId }: RouteFormProps) {
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel className="sr-only">
-                      {firstItem ? "Starting place" : "Place"}
+                      {isFirstItem ? "Starting place" : "Stop"}
                     </FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -86,23 +133,25 @@ export function RouteForm({ mapId }: RouteFormProps) {
                           <Button
                             className={cn(
                               "text-slate-800 w-full justify-between shadow-none",
-                              firstItem &&
+                              isFirstItem &&
                                 "text-sky-800 border-b-0 rounded-b-none",
-                              lastItem &&
+                              isLastItem &&
                                 "text-amber-800 border-t-0 rounded-t-none",
-                              !firstItem && !lastItem && "rounded-none"
+                              !isFirstItem && !isLastItem && "rounded-none"
                             )}
                             variant="outline"
                             disabled={
-                              !firstItem &&
+                              !isFirstItem &&
                               !form.getValues(`places.${i - 1}.name`)
                             }
                           >
                             <span className="inline-flex items-center gap-2">
-                              <MapPinHouse />
+                              {isFirstItem && <MapPinHouse />}
+                              {isLastItem && <MapPinX />}
+                              {isStop && <MapPin />}
                               {field.value?.name
                                 ? field.value.name
-                                : firstItem
+                                : isFirstItem
                                 ? "Where do you want to start?"
                                 : "Search a place"}
                             </span>
@@ -110,14 +159,13 @@ export function RouteForm({ mapId }: RouteFormProps) {
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent
-                        forceMount
-                        className="w-[var(--radix-popover-trigger-width)] p-0"
-                      >
+                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
                         <SearchLocation
                           onSelect={(place) => places.update(i, place)}
                           selectedValue={field.value}
                           mapId={mapId}
+                          initialOptions={isFirstItem ? null : nearbyPlaces}
+                          isLoadingInitialOptions={nearbySearchQuery.isLoading}
                         />
                       </PopoverContent>
                     </Popover>
