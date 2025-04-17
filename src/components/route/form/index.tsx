@@ -110,7 +110,7 @@ export function RouteForm({ mapId }: RouteFormProps) {
   };
 
   return (
-    <div className="border p-4 rounded-md">
+    <div className="w-full">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           {places.fields.map((field, i) => {
@@ -132,14 +132,15 @@ export function RouteForm({ mapId }: RouteFormProps) {
                         <FormControl>
                           <Button
                             className={cn(
-                              "text-slate-800 w-full justify-between shadow-none",
+                              "text-slate-800 dark:text-slate-200 w-full justify-between shadow-none",
                               isFirstItem &&
-                                "text-sky-800 border-b-0 rounded-b-none",
+                                "text-sky-800 dark:text-sky-200 border-b-0 rounded-b-none",
                               isLastItem &&
-                                "text-amber-800 border-t-0 rounded-t-none",
+                                "text-amber-800 dark:text-amber-200 border-t-0 rounded-t-none",
                               !isFirstItem && !isLastItem && "rounded-none"
                             )}
                             variant="outline"
+                            size="lg"
                             disabled={
                               !isFirstItem &&
                               !form.getValues(`places.${i - 1}.name`)

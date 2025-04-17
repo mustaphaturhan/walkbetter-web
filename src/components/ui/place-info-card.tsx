@@ -63,7 +63,7 @@ export default function PlaceInfoCard({
           onClick={onClose}
           className="absolute top-2.5 right-2"
           variant="ghost"
-          size="icon-sm"
+          size="icon-xs"
         >
           <X />
         </Button>

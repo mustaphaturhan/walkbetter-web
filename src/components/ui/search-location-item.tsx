@@ -63,7 +63,7 @@ export const SearchLocationItem = ({
             variant="outline"
             className="ml-auto hover:bg-border"
             onClick={handlePreview}
-            size="icon-sm"
+            size="icon-xs"
             aria-label="Preview on map"
           >
             <Eye />

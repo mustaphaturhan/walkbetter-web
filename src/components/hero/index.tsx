@@ -1,4 +1,7 @@
+import { ArrowRight } from "lucide-react";
+import { Button } from "../ui/button";
 import { Item, List } from "../ui/hero-list";
+import Link from "next/link";
 
 export const Hero = () => {
   return (
@@ -24,6 +27,22 @@ export const Hero = () => {
             description="Save time by exploring every key place without walking the same street twice."
           />
         </List>
+        <div className="flex mt-4 gap-2">
+          <Button
+            className="text-sky-800 font-bold"
+            variant="outline"
+            size="lg"
+            asChild
+          >
+            <Link href="/trip/generate">
+              Start with planning
+              <ArrowRight />
+            </Link>
+          </Button>
+          <Button variant="ghost" size="lg" asChild>
+            <Link href="/explore">Explore routes</Link>
+          </Button>
+        </div>
       </div>
     </section>
   );

@@ -51,6 +51,7 @@ export const Map = ({ id }: MapProps) => {
       };
 
       if (JSON.stringify(newPreviewPlace) !== JSON.stringify(previewPlace)) {
+        // @ts-expect-error - TODO: fix this after development process is done
         setPreviewPlace(id, newPreviewPlace);
       }
     }
