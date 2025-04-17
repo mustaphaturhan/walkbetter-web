@@ -123,12 +123,52 @@
       "paint": { "fill-color": "#e0e4dd" }
     },
     {
-      "id": "landuse-hospital",
+      "id": "Hospital",
       "type": "fill",
       "source": "openmaptiles",
       "source-layer": "landuse",
-      "filter": ["==", ["get", "class"], "hospital"],
-      "paint": { "fill-color": "#fde" }
+      "minzoom": 9,
+      "layout": { "visibility": "visible" },
+      "paint": {
+        "fill-antialias": true,
+        "fill-color": "hsl(12,63%,94%)",
+        "fill-opacity": {
+          "stops": [
+            [9, 0.25],
+            [16, 1]
+          ]
+        }
+      },
+      "metadata": {},
+      "filter": ["==", "class", "hospital"]
+    },
+    {
+      "id": "Water intermittent",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "water",
+      "layout": { "visibility": "visible" },
+      "paint": {
+        "fill-antialias": true,
+        "fill-color": "hsl(205,91%,83%)",
+        "fill-opacity": 0.85
+      },
+      "metadata": {},
+      "filter": ["==", "intermittent", 1]
+    },
+    {
+      "id": "Water",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "water",
+      "layout": { "visibility": "visible" },
+      "paint": {
+        "fill-antialias": true,
+        "fill-color": "hsl(204,92%,75%)",
+        "fill-opacity": ["match", ["get", "intermittent"], 1, 0.85, 1]
+      },
+      "metadata": {},
+      "filter": ["!=", "intermittent", 1]
     },
     {
       "id": "landuse-school",
@@ -2396,18 +2436,48 @@
       "filter": ["all", ["==", "$type", "Point"], ["==", "class", "ocean"]],
       "layout": {
         "symbol-placement": "point",
-        "symbol-spacing": 350,
-        "text-field": "{name:latin}",
+        "text-field": "{name:en}",
         "text-font": ["Noto Sans Italic"],
-        "text-letter-spacing": 0.2,
         "text-max-width": 5,
-        "text-rotation-alignment": "map",
-        "text-size": 14
+        "text-size": [
+          "interpolate",
+          ["linear", 1],
+          ["zoom"],
+          1,
+          ["match", ["get", "class"], ["ocean"], 14, 10],
+          3,
+          ["match", ["get", "class"], ["ocean"], 18, 14],
+          9,
+          ["match", ["get", "class"], ["ocean"], 22, 18],
+          14,
+          ["match", ["get", "class"], ["lake"], 14, ["sea"], 20, 26]
+        ],
+        "visibility": "visible"
       },
       "paint": {
-        "text-color": "#74aee9",
-        "text-halo-color": "rgba(255,255,255,0.7)",
-        "text-halo-width": 1.5
+        "text-color": {
+          "stops": [
+            [1, "hsl(203,54%,54%)"],
+            [4, "hsl(203,72%,39%)"]
+          ]
+        },
+        "text-halo-blur": 1,
+        "text-halo-color": {
+          "stops": [
+            [1, "hsla(196, 72%, 80%, 0.05)"],
+            [3, "hsla(200, 100%, 88%, 0.75)"]
+          ]
+        },
+        "text-halo-width": 1,
+        "text-opacity": [
+          "step",
+          ["zoom"],
+          0,
+          1,
+          ["match", ["get", "class"], ["ocean"], 1, 0],
+          3,
+          1
+        ]
       }
     },
     {
@@ -2437,6 +2507,51 @@
         "text-halo-color": "rgba(255,255,255,0.7)",
         "text-halo-width": 1.5
       }
+    },
+    {
+      "id": "Road labels",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "transportation_name",
+      "minzoom": 8,
+      "layout": {
+        "icon-allow-overlap": false,
+        "icon-ignore-placement": false,
+        "icon-keep-upright": false,
+        "symbol-placement": "line",
+        "symbol-spacing": ["step", ["zoom"], 250, 21, 1000],
+        "text-allow-overlap": false,
+        "text-anchor": "center",
+        "text-field": ["coalesce", ["get", "name:en"], ["get", "name"]],
+        "text-font": ["Noto Sans Regular"],
+        "text-ignore-placement": false,
+        "text-justify": "center",
+        "text-max-width": 10,
+        "text-offset": [0, 0.15],
+        "text-optional": false,
+        "text-size": {
+          "stops": [
+            [13, 10],
+            [14, 11],
+            [18, 13],
+            [22, 15]
+          ]
+        },
+        "visibility": "visible"
+      },
+      "paint": {
+        "icon-color": "hsl(0, 0%, 16%)",
+        "text-color": "hsl(0, 0%, 16%)",
+        "text-halo-blur": 0.5,
+        "text-halo-color": "hsl(0,0%,100%)",
+        "text-halo-width": 1
+      },
+      "metadata": {},
+      "filter": [
+        "all",
+        ["!in", "subclass", "gondola", "cable_car"],
+        ["!in", "class", "ferry", "service"]
+      ]
     },
     {
       "id": "road_oneway",
@@ -2513,248 +2628,6 @@
       "paint": { "icon-opacity": 0.5 }
     },
     {
-      "id": "poi-level-3",
-      "type": "symbol",
-      "source": "openmaptiles",
-      "source-layer": "poi",
-      "minzoom": 14.9,
-      "filter": [
-        "all",
-        ["==", "$type", "Point"],
-        [">=", "rank", 25],
-        [
-          "!in",
-          "class",
-          "shop",
-          "tourism",
-          "hospital",
-          "school",
-          "grocery",
-          "office",
-          "fast_food",
-          "fuel",
-          "clothing_store",
-          "beer",
-          "alcohol_shop",
-          "college",
-          "bar",
-          "food"
-        ],
-        ["any", ["!has", "level"], ["==", "level", 0]]
-      ],
-      "layout": {
-        "icon-image": "{class}_11",
-        "text-anchor": "top",
-        "text-field": "{name:latin}\n{name:nonlatin}",
-        "text-font": ["Noto Sans Regular"],
-        "text-max-width": 9,
-        "text-offset": [0, 0.6],
-        "text-padding": 2,
-        "text-size": 12,
-        "visibility": "visible"
-      },
-      "paint": {
-        "text-color": "#666",
-        "text-halo-blur": 0.5,
-        "text-halo-color": "#ffffff",
-        "text-halo-width": 1
-      }
-    },
-    {
-      "id": "poi-level-2",
-      "type": "symbol",
-      "source": "openmaptiles",
-      "source-layer": "poi",
-      "minzoom": 15,
-      "filter": [
-        "all",
-        ["==", "$type", "Point"],
-        ["<=", "rank", 24],
-        [">=", "rank", 15],
-        [
-          "!in",
-          "class",
-          "shop",
-          "tourism",
-          "hospital",
-          "school",
-          "grocery",
-          "office",
-          "fast_food",
-          "fuel",
-          "clothing_store",
-          "beer",
-          "alcohol_shop",
-          "college",
-          "bar",
-          "food"
-        ],
-        ["any", ["!has", "level"], ["==", "level", 0]]
-      ],
-      "layout": {
-        "icon-image": "{class}_11",
-        "text-anchor": "top",
-        "text-field": "{name:latin}\n{name:nonlatin}",
-        "text-font": ["Noto Sans Regular"],
-        "text-max-width": 9,
-        "text-offset": [0, 0.6],
-        "text-padding": 2,
-        "text-size": 12,
-        "visibility": "visible"
-      },
-      "paint": {
-        "text-color": "#666",
-        "text-halo-blur": 0.5,
-        "text-halo-color": "#ffffff",
-        "text-halo-width": 1
-      }
-    },
-    {
-      "id": "poi-level-1",
-      "type": "symbol",
-      "source": "openmaptiles",
-      "source-layer": "poi",
-      "minzoom": 14,
-      "filter": [
-        "all",
-        ["==", "$type", "Point"],
-        ["<=", "rank", 14],
-        ["has", "name"],
-        [
-          "!in",
-          "class",
-          "shop",
-          "tourism",
-          "hospital",
-          "school",
-          "grocery",
-          "office",
-          "fast_food",
-          "fuel",
-          "clothing_store",
-          "beer",
-          "alcohol_shop",
-          "college",
-          "bar",
-          "food"
-        ],
-        ["any", ["!has", "level"], ["==", "level", 0]]
-      ],
-      "layout": {
-        "icon-image": "{class}_11",
-        "text-anchor": "top",
-        "text-field": "{name:latin}\n{name:nonlatin}",
-        "text-font": ["Noto Sans Regular"],
-        "text-max-width": 9,
-        "text-offset": [0, 0.6],
-        "text-padding": 2,
-        "text-size": 12,
-        "visibility": "visible"
-      },
-      "paint": {
-        "text-color": "#666",
-        "text-halo-blur": 0.5,
-        "text-halo-color": "#ffffff",
-        "text-halo-width": 1
-      }
-    },
-    {
-      "id": "poi-shop",
-      "type": "symbol",
-      "source": "openmaptiles",
-      "source-layer": "poi",
-      "minzoom": 18,
-      "filter": [
-        "all",
-        ["==", "$type", "Point"],
-        ["in", "class", "shop", "beer", "alcohol_shop", "bar", "food"],
-        ["any", ["!has", "level"], ["==", "level", 0]]
-      ],
-      "layout": {
-        "icon-image": "{class}_11",
-        "text-anchor": "top",
-        "text-field": "{name:latin}\n{name:nonlatin}",
-        "text-font": ["Noto Sans Regular"],
-        "text-max-width": 9,
-        "text-offset": [0, 0.6],
-        "text-padding": 2,
-        "text-size": 12,
-        "visibility": "visible"
-      },
-      "paint": {
-        "text-color": "#666",
-        "text-halo-blur": 0.5,
-        "text-halo-color": "#ffffff",
-        "text-halo-width": 1
-      }
-    },
-    {
-      "id": "poi-tourism",
-      "type": "symbol",
-      "source": "openmaptiles",
-      "source-layer": "poi",
-      "minzoom": 15,
-      "filter": [
-        "all",
-        ["==", "$type", "Point"],
-        ["in", "class", "tourism", "art_gallery", "attraction"],
-        ["any", ["!has", "level"], ["==", "level", 0]]
-      ],
-      "layout": {
-        "icon-image": "{class}_11",
-        "text-anchor": "top",
-        "text-field": "{name:latin}\n{name:nonlatin}",
-        "text-font": ["Noto Sans Regular"],
-        "text-max-width": 9,
-        "text-offset": [0, 0.6],
-        "text-padding": 2,
-        "text-size": 12,
-        "visibility": "visible"
-      },
-      "paint": {
-        "text-color": "#666",
-        "text-halo-blur": 0.5,
-        "text-halo-color": "#ffffff",
-        "text-halo-width": 1
-      }
-    },
-    {
-      "id": "poi-railway",
-      "type": "symbol",
-      "source": "openmaptiles",
-      "source-layer": "poi",
-      "minzoom": 13,
-      "filter": [
-        "all",
-        ["==", "$type", "Point"],
-        ["has", "name"],
-        ["==", "class", "railway"],
-        ["==", "subclass", "station"]
-      ],
-      "layout": {
-        "icon-allow-overlap": false,
-        "icon-ignore-placement": false,
-        "icon-image": "{class}_11",
-        "icon-optional": false,
-        "text-allow-overlap": false,
-        "text-anchor": "top",
-        "text-field": "{name:latin}\n{name:nonlatin}",
-        "text-font": ["Noto Sans Regular"],
-        "text-ignore-placement": false,
-        "text-max-width": 9,
-        "text-offset": [0, 0.6],
-        "text-optional": true,
-        "text-padding": 2,
-        "text-size": 12
-      },
-      "paint": {
-        "text-color": "#666",
-        "text-halo-blur": 0.5,
-        "text-halo-color": "#ffffff",
-        "text-halo-width": 1
-      }
-    },
-    {
       "id": "highway-name-path",
       "type": "symbol",
       "source": "openmaptiles",
@@ -2811,6 +2684,38 @@
       }
     },
     {
+      "id": "Gondola",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "transportation_name",
+      "minzoom": 13,
+      "layout": {
+        "symbol-placement": "line",
+        "text-anchor": "center",
+        "text-field": ["coalesce", ["get", "name:en"], ["get", "name"]],
+        "text-font": ["Noto Sans Italic"],
+        "text-offset": [0.8, 0.8],
+        "text-size": {
+          "base": 1,
+          "stops": [
+            [13, 11],
+            [15, 12],
+            [18, 13],
+            [22, 14]
+          ]
+        },
+        "visibility": "visible"
+      },
+      "paint": {
+        "text-color": "hsl(0,0%,40%)",
+        "text-halo-blur": 1,
+        "text-halo-color": "hsl(0,0%,100%)",
+        "text-halo-width": 1
+      },
+      "metadata": {},
+      "filter": ["in", "subclass", "gondola", "cable_car"]
+    },
+    {
       "id": "highway-name-major",
       "type": "symbol",
       "source": "openmaptiles",
@@ -2844,7 +2749,7 @@
       "minzoom": 10,
       "filter": ["all", ["has", "iata"]],
       "layout": {
-        "icon-image": "airport_11",
+        "icon-image": "airport",
         "icon-size": 1,
         "text-anchor": "top",
         "text-field": "{name:latin}\n{name:nonlatin}",
@@ -2914,60 +2819,106 @@
       }
     },
     {
-      "id": "place-city",
+      "id": "City labels",
       "type": "symbol",
       "source": "openmaptiles",
       "source-layer": "place",
-      "filter": ["all", ["!=", "capital", 2], ["==", "class", "city"]],
+      "minzoom": 4,
+      "maxzoom": 16,
       "layout": {
-        "text-field": "{name:latin}\n{name:nonlatin}",
+        "icon-allow-overlap": true,
+        "icon-image": ["step", ["zoom"], "circle", 13, ""],
+        "icon-optional": false,
+        "icon-size": 0.4,
+        "symbol-sort-key": ["to-number", ["get", "rank"]],
+        "text-anchor": "bottom",
+        "text-field": "{name:en}",
         "text-font": ["Noto Sans Regular"],
         "text-max-width": 8,
-        "text-size": {
-          "base": 1.2,
-          "stops": [
-            [3, 10],
-            [7, 14],
-            [11, 14]
-          ]
-        },
+        "text-offset": [0, -0.15],
+        "text-size": [
+          "interpolate",
+          ["linear", 1],
+          ["zoom"],
+          4,
+          ["case", ["<=", ["get", "rank"], 2], 14, 12],
+          8,
+          ["case", ["<=", ["get", "rank"], 4], 18, 14],
+          12,
+          ["case", ["<=", ["get", "rank"], 4], 24, 18],
+          16,
+          ["case", ["<=", ["get", "rank"], 4], 32, 26]
+        ],
         "visibility": "visible"
       },
       "paint": {
-        "text-color": "#333",
-        "text-halo-color": "rgba(255,255,255,0.8)",
-        "text-halo-width": 1.2
-      }
+        "icon-color": "hsl(0, 0%, 100%)",
+        "icon-halo-color": "hsl(0, 0%, 29%)",
+        "icon-halo-width": 1,
+        "icon-opacity": 1,
+        "text-color": "hsl(0,0%,20%)",
+        "text-halo-blur": 0.5,
+        "text-halo-color": "hsl(0,0%,100%)",
+        "text-halo-width": 0.8
+      },
+      "metadata": {},
+      "filter": ["all", ["==", "class", "city"], ["!=", "capital", 2]]
     },
     {
-      "id": "place-city-capital",
+      "id": "Capital city labels",
       "type": "symbol",
       "source": "openmaptiles",
       "source-layer": "place",
-      "filter": ["all", ["==", "capital", 2], ["==", "class", "city"]],
+      "minzoom": 4,
+      "maxzoom": 16,
       "layout": {
-        "icon-image": "star_11",
-        "icon-size": 0.8,
-        "text-anchor": "left",
-        "text-field": "{name:latin}\n{name:nonlatin}",
+        "icon-allow-overlap": true,
+        "icon-image": ["step", ["zoom"], "circle", 13, ""],
+        "icon-optional": false,
+        "icon-size": [
+          "interpolate",
+          ["linear", 1],
+          ["zoom"],
+          4,
+          0.45,
+          10,
+          0.5,
+          11,
+          0.6
+        ],
+        "symbol-sort-key": ["to-number", ["get", "rank"]],
+        "text-anchor": "bottom",
+        "text-field": "{name:en}",
         "text-font": ["Noto Sans Regular"],
         "text-max-width": 8,
-        "text-offset": [0.4, 0],
-        "text-size": {
-          "base": 1.2,
-          "stops": [
-            [3, 10],
-            [7, 14],
-            [11, 16]
-          ]
-        },
+        "text-offset": [0, -0.15],
+        "text-size": [
+          "interpolate",
+          ["linear", 1],
+          ["zoom"],
+          4,
+          14,
+          8,
+          18,
+          12,
+          24,
+          16,
+          32
+        ],
         "visibility": "visible"
       },
       "paint": {
-        "text-color": "#333",
-        "text-halo-color": "rgba(255,255,255,0.8)",
-        "text-halo-width": 1.2
-      }
+        "icon-color": "hsl(0, 0%, 100%)",
+        "icon-halo-color": "hsl(0, 0%, 29%)",
+        "icon-halo-width": 1,
+        "icon-opacity": 1,
+        "text-color": "hsl(0,0%,20%)",
+        "text-halo-blur": 0.5,
+        "text-halo-color": "hsl(0,0%,100%)",
+        "text-halo-width": 0.8
+      },
+      "metadata": {},
+      "filter": ["all", ["==", "class", "city"], ["==", "capital", 2]]
     },
     {
       "id": "place-state",
@@ -3141,6 +3092,280 @@
         "text-halo-color": "rgba(255,255,255,0.8)",
         "text-halo-width": 2
       }
+    },
+    {
+      "id": "Tourism",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "poi",
+      "minzoom": 14,
+      "layout": {
+        "icon-image": [
+          "match",
+          ["get", "class"],
+          [
+            "apartment",
+            "aquarium",
+            "attraction",
+            "campsite",
+            "camp_site",
+            "caravan_site",
+            "castle",
+            "chalet",
+            "information",
+            "lodging",
+            "reservoir",
+            "ruins",
+            "theme_park",
+            "zoo"
+          ],
+          ["get", "class"],
+          ["case", ["has", "class"], "", "dot"]
+        ],
+        "icon-size": 1,
+        "symbol-sort-key": ["to-number", ["get", "rank"]],
+        "text-anchor": "top",
+        "text-field": "{name}",
+        "text-font": ["Noto Sans Regular"],
+        "text-max-width": 8,
+        "text-offset": [0, 0.8],
+        "text-optional": true,
+        "text-padding": 2,
+        "text-size": {
+          "stops": [
+            [12, 10],
+            [16, 12],
+            [22, 14]
+          ]
+        },
+        "visibility": "visible"
+      },
+      "paint": {
+        "icon-color": "hsl(283, 55%, 35%)",
+        "icon-halo-blur": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          12,
+          1,
+          14,
+          0.8,
+          16,
+          0
+        ],
+        "icon-halo-color": "hsl(0, 0%, 100%)",
+        "icon-halo-width": 2,
+        "icon-opacity": [
+          "step",
+          ["zoom"],
+          0,
+          14,
+          ["match", ["get", "subclass"], ["attraction"], 1, 0],
+          16,
+          ["match", ["get", "subclass"], ["attraction", "castle", "zoo"], 1, 0],
+          17,
+          1
+        ],
+        "text-color": "hsl(283, 55%, 35%)",
+        "text-halo-blur": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          12,
+          1,
+          14,
+          0.5,
+          16,
+          0
+        ],
+        "text-halo-color": "hsl(0, 0%, 100%)",
+        "text-halo-width": 2,
+        "text-opacity": [
+          "step",
+          ["zoom"],
+          0,
+          14,
+          ["match", ["get", "subclass"], ["attraction"], 1, 0],
+          16,
+          ["match", ["get", "subclass"], ["attraction", "castle", "zoo"], 1, 0],
+          17,
+          1
+        ]
+      },
+      "metadata": {},
+      "filter": [
+        "all",
+        ["==", "$type", "Point"],
+        [
+          "in",
+          "class",
+          "apartment",
+          "aquarium",
+          "attraction",
+          "campsite",
+          "camp_site",
+          "caravan_site",
+          "castle",
+          "chalet",
+          "information",
+          "lodging",
+          "reservoir",
+          "ruins",
+          "theme_park",
+          "zoo"
+        ],
+        ["!in", "subclass", "board", "hotel"],
+        ["has", "name"]
+      ]
+    },
+    {
+      "id": "Culture",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "poi",
+      "minzoom": 14,
+      "layout": {
+        "icon-image": [
+          "coalesce",
+          ["image", ["to-string", ["get", "subclass"]]],
+          ["image", ["get", "class"]],
+          ["image", "dot"]
+        ],
+        "icon-size": 1,
+        "symbol-sort-key": ["to-number", ["get", "rank"]],
+        "text-anchor": "top",
+        "text-field": "{name}",
+        "text-font": ["Noto Sans Regular"],
+        "text-max-width": 8,
+        "text-offset": [0, 0.8],
+        "text-optional": true,
+        "text-padding": 2,
+        "text-size": {
+          "stops": [
+            [12, 10],
+            [16, 12],
+            [22, 14]
+          ]
+        },
+        "visibility": "visible"
+      },
+      "paint": {
+        "icon-color": "hsl(315, 35%, 50%)",
+        "icon-halo-blur": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          12,
+          1,
+          14,
+          0.8,
+          16,
+          0
+        ],
+        "icon-halo-color": "hsl(0, 0%, 100%)",
+        "icon-halo-width": 2,
+        "icon-opacity": [
+          "step",
+          ["zoom"],
+          0,
+          14,
+          ["match", ["get", "class"], ["museum"], 1, 0],
+          15,
+          [
+            "match",
+            ["get", "class"],
+            ["cinema", "art_gallery", "museum", "theatre"],
+            1,
+            0
+          ],
+          16,
+          [
+            "match",
+            ["get", "class"],
+            [
+              "cinema",
+              "art_gallery",
+              "library",
+              "museum",
+              "place_of_worship",
+              "theatre"
+            ],
+            1,
+            0
+          ],
+          17,
+          1
+        ],
+        "text-color": "hsl(315, 35%, 50%)",
+        "text-halo-blur": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          12,
+          1,
+          14,
+          0.5,
+          16,
+          0
+        ],
+        "text-halo-color": "hsl(0, 0%, 100%)",
+        "text-halo-width": 2,
+        "text-opacity": [
+          "step",
+          ["zoom"],
+          0,
+          14,
+          ["match", ["get", "class"], ["museum"], 1, 0],
+          15,
+          [
+            "match",
+            ["get", "class"],
+            ["cinema", "art_gallery", "museum", "theatre"],
+            1,
+            0
+          ],
+          16,
+          [
+            "match",
+            ["get", "class"],
+            [
+              "cinema",
+              "art_gallery",
+              "library",
+              "museum",
+              "place_of_worship",
+              "theatre"
+            ],
+            1,
+            0
+          ],
+          17,
+          1
+        ]
+      },
+      "metadata": {},
+      "filter": [
+        "all",
+        ["==", "$type", "Point"],
+        [
+          "in",
+          "class",
+          "art_gallery",
+          "archeological_site",
+          "cinema",
+          "community_centre",
+          "gallery",
+          "library",
+          "monastery",
+          "monument",
+          "museum",
+          "opera",
+          "place_of_worship",
+          "planetarium",
+          "theatre"
+        ],
+        ["has", "name"]
+      ]
     }
   ]
 }

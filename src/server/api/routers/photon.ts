@@ -7,7 +7,9 @@ import { PhotonResponse } from "@/server/types";
 import { PhotonPlace } from "@/types/common";
 import { getFromCache, setInCache } from "@/lib/redis";
 
-const PHOTON_CACHE_TTL_SECONDS = 20 * 60; // 20 minutes
+// touristic places are not changing that often, so we can cache for a while
+// 2 hours for now, but we can increase it if needed
+const PHOTON_CACHE_TTL_SECONDS = 120 * 60; // 2 hours
 
 const searchInputSchema = z.object({
   query: z.string().min(2),

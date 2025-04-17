@@ -6,7 +6,7 @@ import { NominatimResponse } from "@/server/types";
 import { getFromCache, setInCache } from "@/lib/redis";
 import { consola } from "consola";
 
-const NOMINATIM_CACHE_TTL_SECONDS = 60 * 60;
+const NOMINATIM_CACHE_TTL_SECONDS = 120 * 60; // 2 hours
 
 const generateReverseGeocodeCacheKey = (lat: number, lng: number): string => {
   return `reverse-geocode|lat:${lat.toFixed(5)}|lon:${lng.toFixed(5)}`;

@@ -6,8 +6,8 @@ export const Route = () => {
   const mapId = "main";
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-16">
-      <div className="w-full h-[600px] order-1 lg:order-2 rounded-lg overflow-hidden">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-16">
+      <div className="w-full h-[800px] order-1 col-span-2 lg:order-2 rounded-lg overflow-hidden">
         <Map id={mapId} />
       </div>
       <div className="flex flex-col gap-2 order-2 lg:order-1">
