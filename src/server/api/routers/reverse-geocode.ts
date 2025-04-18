@@ -16,8 +16,8 @@ type CachedReverseGeocodeResult = NominatimResponse & {
   corrected_lat?: string;
   corrected_lon?: string;
   image?: {
-      thumb_256_url?: string;
-      thumb_1024_url?: string;
+    thumb_256_url?: string;
+    thumb_1024_url?: string;
   };
 };
 
@@ -93,7 +93,11 @@ export const reverseGeocodeRouter = createTRPCRouter({
           "/images",
           {
             fields: "id,thumb_256_url,thumb_1024_url",
-            bbox: `${lng - delta},${lat - delta},${lng + delta},${lat + delta}`,
+            bbox: `${(Number(reverseData.lon) || lng) - delta},${
+              (Number(reverseData.lat) || lat) - delta
+            },${(Number(reverseData.lon) || lng) + delta},${
+              (Number(reverseData.lat) || lat) + delta
+            }`,
             limit: 1,
             access_token: mapillaryToken,
           }

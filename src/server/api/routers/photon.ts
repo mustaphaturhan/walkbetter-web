@@ -78,7 +78,7 @@ export const photonRouter = createTRPCRouter({
       lang: input.lang,
       limit: input.limit,
       layer: input.layer,
-      osm_tag: input.osm_tag,
+      osm_tag: input.osm_tag || "tourism",
       lat: input.lat,
       lon: input.lon,
       bbox: input.bbox,

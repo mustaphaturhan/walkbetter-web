@@ -112,7 +112,6 @@
   --sidebar-ring: oklch(0.554 0.135 66.442);
 }
 
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -124,5 +123,17 @@
   button:not([disabled]),
   [role="button"]:not([disabled]) {
     cursor: pointer;
+  }
+
+  .maplibregl-popup-content {
+    @apply !rounded-xl !shadow-lg !bg-background;
+  }
+
+  .maplibregl-popup-tip {
+    @apply !border-t-background;
+  }
+
+  .maplibregl-map {
+    @apply !font-sans
   }
 }

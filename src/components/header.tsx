@@ -9,9 +9,9 @@ export function Header() {
   const pathname = usePathname();
 
   return (
-    <header className="z-10 h-16 px-4 w-full shadow-xs flex justify-between items-center">
+    <header className="z-30 h-16 px-4 w-full shadow-xs border-b flex justify-between items-center">
       <div className="flex items-center gap-6">
-        <Link href="/" className="font-bold text-lg">
+        <Link href="/" className="font-bold text-lg text-amber-600">
           Walk/Better
         </Link>
         <nav className="hidden md:flex gap-2">

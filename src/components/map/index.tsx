@@ -6,6 +6,7 @@ import MapGL, {
   MapRef,
   MapLayerMouseEvent,
   Marker,
+  Popup,
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -32,9 +33,9 @@ export const Map = ({ id }: MapProps) => {
   const locations = useRouteStore((s) => s.locations);
   const searchParams = useSearchParams();
   const [viewState, setViewState] = useState({
-    zoom: Number(searchParams.get("zoom")) ?? initialViewState.zoom,
-    longitude: Number(searchParams.get("lon")) ?? initialViewState.longitude,
-    latitude: Number(searchParams.get("lat")) ?? initialViewState.latitude,
+    zoom: Number(searchParams.get("zoom")) || initialViewState.zoom,
+    longitude: Number(searchParams.get("lon")) || initialViewState.longitude,
+    latitude: Number(searchParams.get("lat")) || initialViewState.latitude,
   });
   const clickTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -114,6 +115,7 @@ export const Map = ({ id }: MapProps) => {
           `/trip/generate?lat=${e.viewState.latitude}&lon=${e.viewState.longitude}&zoom=${e.viewState.zoom}`
         );
       }}
+      minZoom={2.2}
       onClick={handleMapClick}
       onZoomStart={(e) => e.viewState.zoom < 6 && setPreviewPlace(id, null)}
       onLoad={() => {
@@ -143,14 +145,17 @@ export const Map = ({ id }: MapProps) => {
       ))}
 
       {previewPlace && previewPlace.ready && (
-        <div className="absolute bottom-4 w-full max-w-[350px] left-1/2 -translate-x-1/2">
-          <PlaceInfoCard
-            smallImgUrl={previewPlace.image?.thumb_256_url}
-            bigImgUrl={previewPlace.image?.thumb_1024_url}
-            place={previewPlace}
-            onClose={() => setPreviewPlace(id, null)}
-          />
-        </div>
+        <Popup
+          longitude={previewPlace.lon}
+          latitude={previewPlace.lat}
+          onClose={() => setPreviewPlace(id, null)}
+          closeButton={false}
+          // closeOnClick={false}
+          anchor="bottom"
+          offset={24}
+        >
+          <PlaceInfoCard place={previewPlace} />
+        </Popup>
       )}
     </MapGL>
   );
