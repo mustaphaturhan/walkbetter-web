@@ -15,6 +15,7 @@ import { MapPin } from "lucide-react";
 import PlaceInfoCard from "../ui/place-info-card";
 import { useMapStore } from "@/stores/map.store";
 import { useRouteStore } from "@/stores/route.store";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const initialViewState = { zoom: 5, longitude: 13.388, latitude: 49.517 };
 
@@ -23,12 +24,18 @@ interface MapProps {
 }
 
 export const Map = ({ id }: MapProps) => {
+  const router = useRouter();
   const mapRef = useRef<MapRef>(null);
   const setMapRef = useMapStore((s) => s.setMapRef);
   const setPreviewPlace = useMapStore((s) => s.setPreviewPlace);
   const previewPlace = useMapStore((s) => s.previewPlaces[id] ?? null);
   const locations = useRouteStore((s) => s.locations);
-  const [viewState, setViewState] = useState(initialViewState);
+  const searchParams = useSearchParams();
+  const [viewState, setViewState] = useState({
+    zoom: Number(searchParams.get("zoom")) ?? initialViewState.zoom,
+    longitude: Number(searchParams.get("lon")) ?? initialViewState.longitude,
+    latitude: Number(searchParams.get("lat")) ?? initialViewState.latitude,
+  });
   const clickTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const input = useMemo(() => {
@@ -102,6 +109,11 @@ export const Map = ({ id }: MapProps) => {
       mapStyle="/assets/default.json"
       {...viewState}
       onMove={(e) => setViewState(e.viewState)}
+      onMoveEnd={(e) => {
+        router.push(
+          `/trip/generate?lat=${e.viewState.latitude}&lon=${e.viewState.longitude}&zoom=${e.viewState.zoom}`
+        );
+      }}
       onClick={handleMapClick}
       onZoomStart={(e) => e.viewState.zoom < 6 && setPreviewPlace(id, null)}
       onLoad={() => {
