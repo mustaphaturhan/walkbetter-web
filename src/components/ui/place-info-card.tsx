@@ -1,15 +1,14 @@
-/* eslint-disable @next/next/no-img-element */
-import { X } from "lucide-react";
+import { MapPinHouse, X } from "lucide-react";
 import { Button } from "./button";
 import { PreviewPlace } from "@/types/common";
 
 type Props = {
   place: PreviewPlace;
-  onClose?: () => void;
-  footer?: React.ReactNode;
+  onClose: () => void;
+  onSelect: (place: PreviewPlace) => void;
 };
 
-export default function PlaceInfoCard({ place, onClose, footer }: Props) {
+export default function PlaceInfoCard({ place, onClose, onSelect }: Props) {
   const {
     display_name,
     address: { road, suburb, city, town, postcode, state, country },
@@ -28,7 +27,21 @@ export default function PlaceInfoCard({ place, onClose, footer }: Props) {
         <div className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2">
           {fullAddress}
         </div>
-        <div className="mt-2">{footer}</div>
+        <div className="mt-2">
+          <div className="grid gap-2">
+            <Button
+              onClick={() => {
+                onSelect(place);
+              }}
+            >
+              <MapPinHouse />
+              Select as a starting point
+            </Button>
+            <Button onClick={onClose} variant="ghost">
+              Cancel
+            </Button>
+          </div>
+        </div>
       </div>
 
       {onClose && (

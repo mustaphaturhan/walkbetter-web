@@ -12,7 +12,9 @@ export interface PhotonPlace {
   type: string;
 }
 
-export interface PreviewPlace extends PhotonPlace, NominatimResponse {
+export interface PreviewPlace
+  extends Partial<PhotonPlace>,
+    Partial<NominatimResponse> {
   corrected_lat?: string;
   corrected_lon?: string;
   lat: number;

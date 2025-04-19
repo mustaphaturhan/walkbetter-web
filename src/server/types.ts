@@ -70,9 +70,6 @@ export interface GeocodeAddress {
   historic?: string;
 }
 
-
-
-
 export interface NominatimResponse {
   address: GeocodeAddress;
   boundingbox: string[];

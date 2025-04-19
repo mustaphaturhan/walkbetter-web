@@ -13,7 +13,7 @@ Avoid retracing your steps, hit every must-see spot — and explore smarter.
 - 🖼️ Street-level imagery from [Mapillary](https://www.mapillary.com)
 - 🗺️ Interactive maps using [MapLibre GL JS](https://maplibre.org)
 - 🧠 Optimized walking route calculation
-- ⚡ Built with Next.js (App Router), tRPC, Tailwind CSS, Zustand
+- ⚡ Built with Next.js (App Router), tRPC, Tailwind CSS
 
 ---
 
@@ -56,7 +56,6 @@ POI visibility (like landmarks vs. shops) is handled based on zoom levels for a 
 - **Frontend**: Next.js 15+, App Router, React 19, TypeScript
 - **Map**: MapLibre, OpenMapTiles, OpenStreetMap
 - **API**: tRPC (server actions)
-- **State**: Zustand (with `immer` & `devtools`)
 - **Reverse Geocode**: OpenStreetMap Nominatim
 - **Street Images**: Mapillary Graph API
 
