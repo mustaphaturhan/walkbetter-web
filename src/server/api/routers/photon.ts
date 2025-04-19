@@ -13,7 +13,7 @@ const PHOTON_CACHE_TTL_SECONDS = 120 * 60; // 2 hours
 
 const searchInputSchema = z.object({
   query: z.string().min(2),
-  lang: z.string().optional(),
+  lang: z.string().optional().default("en"),
   limit: z.number().optional().default(8),
   layer: z.string().optional(),
   osm_tag: z.string().optional(),
@@ -25,7 +25,7 @@ const searchInputSchema = z.object({
 const nearbySearchInputSchema = z.object({
   lat: z.number(),
   lon: z.number(),
-  lang: z.string().optional(),
+  lang: z.string().optional().default("en"),
   limit: z.number().optional().default(1),
   radius: z.number().optional().default(50),
   layer: z.string().optional(),
@@ -169,24 +169,11 @@ export const photonRouter = createTRPCRouter({
       const data: PhotonResponse = await res.json();
       consola.success("Photon reverse geocode successful");
 
-      const rawResults: PhotonPlace[] = data.features.map((f) => ({
-        name: f.properties.name,
-        city: f.properties.city,
-        country: f.properties.country,
+      const results: PhotonPlace[] = data.features.map((f) => ({
         lat: f.geometry.coordinates[1],
         lon: f.geometry.coordinates[0],
-        osm_id: f.properties.osm_id,
-        osm_type: f.properties.osm_type,
-        type: f.properties.type,
-        state: f.properties.state,
-        postcode: f.properties.postcode,
+        ...f.properties,
       }));
-
-      const results = Array.from(
-        new Map(
-          rawResults.map((item) => [`${item.osm_type}-${item.osm_id}`, item])
-        ).values()
-      );
 
       await setInCache(key, results, PHOTON_CACHE_TTL_SECONDS);
 

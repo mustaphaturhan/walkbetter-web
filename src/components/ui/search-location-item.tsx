@@ -4,7 +4,6 @@ import { PhotonPlace } from "@/types/common";
 
 interface SearchLocationItemProps {
   place: PhotonPlace;
-  mapId?: string;
   isSelected: boolean;
   onSelect: (place: PhotonPlace) => void;
 }

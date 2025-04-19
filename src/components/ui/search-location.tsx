@@ -11,9 +11,9 @@ interface SearchLocationProps {
   onSelect: (place: PhotonPlace) => void;
   onFocus?: () => void;
   selectedValue?: PhotonPlace;
-  mapId?: string;
   initialOptions?: PhotonPlace[] | null;
   isLoadingInitialOptions?: boolean;
+  shouldShowResults?: boolean;
 }
 
 export interface SearchLocationRef {
@@ -29,19 +29,19 @@ export const SearchLocation = forwardRef<
       onSelect,
       onFocus,
       selectedValue,
-      mapId,
       initialOptions,
       isLoadingInitialOptions,
+      shouldShowResults,
     },
     ref
   ) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const [query, setQuery] = useState("");
-    const debouncedQuery = useDebounce(query, 400); // ⏳
+    const debouncedQuery = useDebounce(query, 400);
 
     const { data: searchData, isLoading: isLoadingSearch } =
       api.photon.search.useQuery(
-        { query: debouncedQuery },
+        { query: debouncedQuery, limit: 10 },
         { enabled: debouncedQuery.length >= 2, staleTime: 1000 * 60 * 5 }
       );
 
@@ -50,12 +50,9 @@ export const SearchLocation = forwardRef<
       selectedValue?.osm_id === place.osm_id;
 
     const showInitialOptions = !debouncedQuery && !!initialOptions?.length;
-    const showSearchResults = debouncedQuery.length >= 2;
 
     useImperativeHandle(ref, () => ({
-      focus: () => {
-        inputRef.current?.focus();
-      },
+      focus: () => inputRef.current?.focus(),
     }));
 
     return (
@@ -76,7 +73,7 @@ export const SearchLocation = forwardRef<
             )}
           </div>
         </div>
-        <CommandList className="max-h-full outline-none">
+        <CommandList className="mt-2 max-h-full outline-none">
           {query.length > 2 && (
             <CommandEmpty>
               {isLoadingSearch || isLoadingInitialOptions
@@ -84,34 +81,34 @@ export const SearchLocation = forwardRef<
                 : "No place found."}
             </CommandEmpty>
           )}
-          {showInitialOptions && !isLoadingInitialOptions && (
-            <CommandGroup heading="Nearby Suggestions" className="p-0">
-              {initialOptions.map((place) => (
+          {shouldShowResults &&
+            showInitialOptions &&
+            !isLoadingInitialOptions && (
+              <CommandGroup heading="Nearby Suggestions" className="p-0">
+                {initialOptions.map((place) => (
+                  <SearchLocationItem
+                    key={`${place.osm_type}-${place.osm_id}`}
+                    place={place}
+                    isSelected={isPlaceSelected(place)}
+                    onSelect={() => {
+                      onSelect(place);
+                      setQuery("");
+                    }}
+                  />
+                ))}
+              </CommandGroup>
+            )}
+          {shouldShowResults && (
+            <CommandGroup className="p-0">
+              {searchData?.results?.map((place) => (
                 <SearchLocationItem
                   key={`${place.osm_type}-${place.osm_id}`}
                   place={place}
-                  mapId={mapId}
                   isSelected={isPlaceSelected(place)}
                   onSelect={() => {
                     onSelect(place);
                     setQuery("");
                   }}
-                />
-              ))}
-            </CommandGroup>
-          )}
-          {showSearchResults && (
-            <CommandGroup className="p-0">
-              {searchData?.results?.map((place) => (
-                <SearchLocationItem // Use the new component
-                  key={`${place.osm_type}-${place.osm_id}`}
-                  place={place}
-                  mapId={mapId}
-                  isSelected={isPlaceSelected(place)} // Pass isSelected
-                  onSelect={() => {
-                    onSelect(place);
-                    setQuery("");
-                  }} // Pass onSelect handler
                 />
               ))}
             </CommandGroup>

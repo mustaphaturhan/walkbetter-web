@@ -34,3 +34,12 @@ export function getTypeIcon(type: string): LucideIcon {
       return MapPin;
   }
 }
+
+export const toOsmKey = (p: { osm_type: string; osm_id: number }) =>
+  `${p.osm_type}-${p.osm_id}`;
+
+// todo: fix type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const buildSelectedIdSet = (places: any) =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  new Set(places.filter((p: any) => Boolean(p?.osm_id)).map(toOsmKey));
