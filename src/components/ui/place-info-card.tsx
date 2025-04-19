@@ -11,10 +11,17 @@ type Props = {
 export default function PlaceInfoCard({ place, onClose, onSelect }: Props) {
   const {
     display_name,
-    address: { road, suburb, city, town, postcode, state, country },
+    address,
   } = place;
 
-  const fullAddress = [suburb, road, postcode, city || town, state, country]
+  const fullAddress = [
+    address?.suburb,
+    address?.road,
+    address?.postcode,
+    address?.city || address?.town,
+    address?.state,
+    address?.country
+  ]
     .filter(Boolean)
     .join(", ");
 
@@ -22,7 +29,7 @@ export default function PlaceInfoCard({ place, onClose, onSelect }: Props) {
     <div className="px-2">
       <div className="grid gap-0.5 flex-1">
         <div className="font-bold text-lg line-clamp-1">
-          {display_name.split(",")[0]}
+          {display_name?.split(",")[0]}
         </div>
         <div className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2">
           {fullAddress}

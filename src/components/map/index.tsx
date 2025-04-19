@@ -21,13 +21,15 @@ interface MapProps {
   selectedPlaces: PreviewPlace[];
   handleSetPreviewPlace: (place: PreviewPlace | null) => void;
   onLoad: (map: MapRef) => void;
+  onSelectPreviewPlace: (place: PreviewPlace) => void;
 }
 
 export const Map = ({
   previewPlace,
   selectedPlaces,
-  handleSetPreviewPlace,
   onLoad,
+  handleSetPreviewPlace,
+  onSelectPreviewPlace,
 }: MapProps) => {
   const internalMapRef = useRef<MapRef>(null);
   const searchParams = useSearchParams();
@@ -115,10 +117,7 @@ export const Map = ({
         <PreviewPlaceMarker
           place={previewPlace}
           onClose={() => handleSetPreviewPlace(null)}
-          onSelectPlace={() => {
-            // set locations
-            handleSetPreviewPlace(null);
-          }}
+          onSelectPlace={onSelectPreviewPlace}
         />
       )}
 

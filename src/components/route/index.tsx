@@ -24,7 +24,7 @@ import {
   MapPinX,
   RouteIcon,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { Map } from "../map";
@@ -46,24 +46,26 @@ export const Route = () => {
   const [shouldHideRoutes, setShouldHideRoutes] = useState(false);
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      places: [{}, {}, {}],
-    },
+    defaultValues: { places: [{}, {}, {}] },
   });
+
   const places = useFieldArray({ control: form.control, name: "places" });
-  const watchedPlaces = useWatch({ control: form.control, name: "places" });
+  const placesValue = useWatch({ control: form.control, name: "places" });
+  const filledPlacesValues = placesValue.filter((place) => place.name);
+
+  const firstPlace = placesValue[0];
 
   const nearbySearchQuery = api.photon.nearbySearch.useQuery(
     {
-      lat: watchedPlaces[0].lat,
-      lon: watchedPlaces[0].lon,
+      lat: firstPlace?.lat,
+      lon: firstPlace?.lon,
       limit: 20,
       radius: 50,
       osm_tag: "tourism",
     },
     {
-      enabled: !!watchedPlaces[0].lat && !!watchedPlaces[0].lon,
-      staleTime: 1000 * 60 * 5,
+      enabled: !!firstPlace?.lat && !!firstPlace?.lon,
+      staleTime: 1000 * 60 * 30,
     }
   );
 
@@ -73,7 +75,7 @@ export const Route = () => {
       nearbySearchQuery.data?.results
     ) {
       const selectedIds = new Set(
-        watchedPlaces
+        placesValue
           ?.filter((p) => p?.osm_id)
           .map((p) => `${p.osm_type}-${p.osm_id}`) ?? []
       );
@@ -89,66 +91,76 @@ export const Route = () => {
     if (nearbySearchQuery.status === "error") {
       setNearbyPlaces(null);
     }
-  }, [nearbySearchQuery.data, nearbySearchQuery.status, watchedPlaces]);
+  }, [nearbySearchQuery.data, nearbySearchQuery.status, placesValue]);
 
   const onSubmit = (data: z.infer<typeof schema>) => {
     console.log(data);
   };
 
+  const handleAddPlace = (place: PreviewPlace) => {
+    setShouldHideRoutes(false);
+
+    const emptyIndex = placesValue.findIndex((p) => !p?.name);
+    if (emptyIndex !== -1) {
+      places.update(emptyIndex, place);
+    } else {
+      places.append(place);
+    }
+
+    setPreviewPlace(null);
+  };
+
   return (
-    <div className="flex h-[calc(100dvh-4rem)]">
-      <div className="flex flex-col p-4 w-full h-full max-w-[420px] z-10 shadow-xl">
-        <div className="flex flex-col gap-2 h-full">
-          <div className="flex items-center gap-3 mb-2">
-            {shouldHideRoutes && (
-              <Button
-                aria-label="Go back"
-                variant="outline"
-                size="sm"
-                onClick={() => setShouldHideRoutes(false)}
-              >
-                <ArrowLeft />
-              </Button>
-            )}
-            <h1 className="text-2xl font-bold">
-              {shouldHideRoutes ? "Add new place" : "Plan your route"}
-            </h1>
-          </div>
-
-          {!previewPlace || !previewPlace.ready ? (
-            <SearchLocation
-              onSelect={(place) => {
-                if (mapId) {
-                  mapRef.current?.flyTo({
-                    center: [place.lon, place.lat],
-                    zoom: 15,
-                    duration: 1000,
-                  });
-
-                  setPreviewPlace(place);
-                }
-              }}
-              ref={searchLocationRef}
-              // selectedValue={field.value}
-              onFocus={() => setShouldHideRoutes(true)}
-              mapId={mapId}
-              initialOptions={nearbyPlaces}
-              isLoadingInitialOptions={nearbySearchQuery.isLoading}
-            />
-          ) : (
-            <div className="mt-1 rounded-md border p-3 items-center">
-              <PlaceInfoCard
-                place={previewPlace}
-                onClose={() => setPreviewPlace(null)}
-                onSelect={(place) => {
-                  form.setValue("places.0", place);
-                  setPreviewPlace(null);
-                }}
-              />
+    <Form {...form}>
+      <div className="flex h-[calc(100dvh-4rem)]">
+        <div className="flex flex-col p-4 w-full h-full max-w-[420px] z-10 shadow-xl">
+          <div className="flex flex-col gap-2 h-full">
+            <div className="flex items-center gap-3 mb-2">
+              {shouldHideRoutes && (
+                <Button
+                  aria-label="Go back"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShouldHideRoutes(false)}
+                >
+                  <ArrowLeft />
+                </Button>
+              )}
+              <h1 className="text-2xl font-bold">
+                {shouldHideRoutes ? "Add new place" : "Plan your route"}
+              </h1>
             </div>
-          )}
-          <div className={cn({ hidden: shouldHideRoutes })}>
-            <Form {...form}>
+
+            {!previewPlace || !previewPlace.ready ? (
+              <SearchLocation
+                onSelect={(place) => {
+                  if (mapId) {
+                    mapRef.current?.flyTo({
+                      center: [place.lon, place.lat],
+                      zoom: 15,
+                      duration: 1000,
+                    });
+
+                    setPreviewPlace(place);
+                  }
+                }}
+                ref={searchLocationRef}
+                // selectedValue={field.value}
+                onFocus={() => setShouldHideRoutes(true)}
+                mapId={mapId}
+                initialOptions={nearbyPlaces}
+                isLoadingInitialOptions={nearbySearchQuery.isLoading}
+              />
+            ) : (
+              <div className="mt-1 rounded-md border p-3 items-center">
+                <PlaceInfoCard
+                  place={previewPlace}
+                  onClose={() => setPreviewPlace(null)}
+                  onSelect={handleAddPlace}
+                />
+              </div>
+            )}
+            <div className={cn({ hidden: shouldHideRoutes })}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
                 {places.fields.map((field, i) => {
                   const isFirstItem = i === 0;
@@ -205,37 +217,38 @@ export const Route = () => {
                   <Button
                     variant="outline"
                     onClick={() => places.append({})}
-                    disabled={!watchedPlaces.every((place) => place.name)}
+                    disabled={!filledPlacesValues.length}
                   >
                     <span className="inline-flex items-center gap-2">
                       <MapPinPlus />
-                      {!watchedPlaces.every((place) => place.name)
+                      {!filledPlacesValues.length
                         ? "Add more after selecting places"
                         : "Add a stop"}
                     </span>
                   </Button>
 
-                  <Button
-                    disabled={!watchedPlaces.every((place) => place.name)}
-                    type="submit"
-                  >
+                  <Button disabled={!filledPlacesValues.length} type="submit">
                     <RouteIcon />
                     Find the best route
                   </Button>
                 </div>
               </form>
-            </Form>
+            </div>
           </div>
         </div>
+        <div className="w-full h-full">
+          {/* TODO: add a loading state */}
+          <Suspense fallback={null}>
+            <Map
+              onLoad={(map) => (mapRef.current = map)}
+              previewPlace={previewPlace}
+              handleSetPreviewPlace={setPreviewPlace}
+              selectedPlaces={filledPlacesValues}
+              onSelectPreviewPlace={handleAddPlace}
+            />
+          </Suspense>
+        </div>
       </div>
-      <div className="w-full h-full">
-        <Map
-          onLoad={(map) => (mapRef.current = map)}
-          previewPlace={previewPlace}
-          handleSetPreviewPlace={setPreviewPlace}
-          selectedPlaces={watchedPlaces.filter((place) => place.name)}
-        />
-      </div>
-    </div>
+    </Form>
   );
 };
